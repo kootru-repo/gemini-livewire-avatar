@@ -1,0 +1,207 @@
+{
+  "project": {
+    "name": "Gemini Live Avatar",
+    "version": "1.0.0",
+    "description": "Voice-to-voice conversation with Gemini 2.5 Flash"
+  },
+  "api": {
+    "projectId": "avatar-478217",
+    "model": "models/gemini-2.5-flash-native-audio-preview-09-2025",
+    "apiHost": "generativelanguage.googleapis.com",
+    "region": "global",
+    "proxyUrl": {
+      "local": "ws://localhost:8080",
+      "cloud": "/ws"
+    }
+  },
+  "backend": {
+    "port": 8080,
+    "host": "0.0.0.0",
+    "wsUrl": {
+      "local": "ws://localhost:8080",
+      "cloud": "wss://YOUR-CLOUD-RUN-SERVICE.run.app",
+      "_comment": "Update 'cloud' URL after deploying backend to Cloud Run. Get URL from: gcloud run services describe gemini-avatar-backend --format='value(status.url)'"
+    }
+  },
+  "firebase": {
+    "_comment": "Firebase configuration for authentication and hosting. Get from Firebase Console > Project Settings > Your apps > SDK setup and configuration",
+    "projectId": "avatar-478217",
+    "appId": "YOUR-FIREBASE-APP-ID",
+    "apiKey": "YOUR-FIREBASE-API-KEY",
+    "authDomain": "avatar-478217.firebaseapp.com",
+    "enabled": true,
+    "_usage": "Set enabled=false to disable Firebase Auth for local development without login"
+  },
+  "cloud": {
+    "_comment": "Cloud-specific configuration. Videos hosted on Cloud Storage for faster global delivery.",
+    "videosBucket": "avatar-478217-videos",
+    "videosBasePath": "https://storage.googleapis.com/avatar-478217-videos/video"
+  },
+  "video": {
+    "_comment_sources": "Avatar video files. Automatically uses local files in dev or Cloud Storage URLs in production.",
+    "sources": {
+      "local": {
+        "idle": "media/video/idle.webm",
+        "listening": "media/video/idle.webm",
+        "speaking": "media/video/talking.webm"
+      },
+      "cloud": {
+        "idle": "https://storage.googleapis.com/avatar-478217-videos/video/idle.webm",
+        "listening": "https://storage.googleapis.com/avatar-478217-videos/video/idle.webm",
+        "speaking": "https://storage.googleapis.com/avatar-478217-videos/video/talking.webm",
+        "_comment": "Update bucket name after: gsutil mb gs://avatar-478217-videos && gsutil -m cp frontend/media/video/*.webm gs://avatar-478217-videos/video/"
+      }
+    },
+    "baseVideoDuration": 10.0,
+    "displayWidth": 768,
+    "displayHeight": 768,
+    "frameInterval": 1000,
+    "screenCaptureInterval": 1000
+  },
+  "speakingCycle": {
+    "_comment": "Video playback pattern while speaking: play first N seconds forward, then cycle reverse/forward",
+    "enabled": true,
+    "initialForwardDuration": 3.0,
+    "reverseDuration": 2.0,
+    "forwardDuration": 2.0
+  },
+  "microPalindrome": {
+    "enabled": false,
+    "segmentDuration": 2.0,
+    "checkInterval": 33,
+    "edgeBuffer": 0.05,
+    "frameZeroThreshold": 0.1
+  },
+  "variations": {
+    "enabled": false,
+    "speakingVariations": [
+      {
+        "speed": 1.0,
+        "startOffset": 0.0,
+        "reverse": false,
+        "name": "normal"
+      },
+      {
+        "speed": 0.97,
+        "startOffset": 0.0,
+        "reverse": false,
+        "name": "slightly_slower"
+      },
+      {
+        "speed": 1.03,
+        "startOffset": 0.0,
+        "reverse": false,
+        "name": "slightly_faster"
+      },
+      {
+        "speed": 1.0,
+        "startOffset": 3.0,
+        "reverse": false,
+        "name": "offset_start"
+      }
+    ]
+  },
+  "audio": {
+    "outputSampleRate": 24000,
+    "inputSampleRate": 16000,
+    "responseModalities": [
+      "AUDIO"
+    ],
+    "pcmFormat": "PCM16LE",
+    "bytesPerSample": 2,
+    "chunkLoggingInterval": 50,
+    "_comment_vad": "DEPRECATED: Client-side VAD is no longer used. Gemini's automatic VAD (geminiVAD section) handles speech detection. These settings are kept for backward compatibility.",
+    "vadThreshold": 0.03,
+    "vadSilenceDuration": 1500,
+    "_comment_bufferLimits": "Buffer safeguards prevent WebSocket error 1007 from large payloads. maxContinuousSpeechSeconds clears stale background noise. maxPayloadSize prevents oversized chunks.",
+    "maxContinuousSpeechSeconds": 10,
+    "maxPayloadSize": 200000
+  },
+  "geminiVoice": {
+    "enabled": true,
+    "voiceName": "Algenib",
+    "_comment_affectiveDialog": "Adapts response style to input expression and tone. Requires API v1alpha.",
+    "affectiveDialog": true
+  },
+  "geminiVAD": {
+    "_comment": "Gemini's built-in automatic Voice Activity Detection per official docs. Only LOW/HIGH sensitivity options (no MEDIUM). prefixPaddingMs: speech duration before start commit. silenceDurationMs: silence duration before end commit. Default sensitivity is HIGH for both (more responsive).",
+    "startSensitivity": "START_SENSITIVITY_HIGH",
+    "endSensitivity": "END_SENSITIVITY_HIGH",
+    "prefixPaddingMs": 100,
+    "silenceDurationMs": 200
+  },
+  "timing": {
+    "transitionDelay": {
+      "immediate": 50,
+      "smooth": 100,
+      "default": 100
+    },
+    "smoothTransition": {
+      "maxWaitForLoopEnd": 0.5,
+      "nearStartThreshold": 0.5
+    },
+    "responseTimeout": 15000,
+    "connectionTimeout": 10000,
+    "_comment_audioChunkInterval": "How often to send audio chunks to Gemini (ms). Lower = more frequent chunks, reduces buffer accumulation. Gemini's automatic VAD handles speech detection.",
+    "audioChunkInterval": 500,
+    "metricsUpdateInterval": 1000
+  },
+  "audioReactivity": {
+    "enabled": false,
+    "fftSize": 128,
+    "smoothingTimeConstant": 0.8,
+    "speedVariation": 0.15,
+    "smoothingFactor": 0.1,
+    "baseSpeedMin": 0.95,
+    "baseSpeedMax": 1.1
+  },
+  "debug": {
+    "enabled": false,
+    "verboseLogging": false,
+    "logChunkDetails": true,
+    "logMicroPalindromeState": true,
+    "logAudioDuration": true,
+    "logMetrics": true,
+    "console": {
+      "maxMessages": 10,
+      "width": 350,
+      "maxHeight": 300,
+      "fontSize": 11
+    }
+  },
+  "speechRecognition": {
+    "language": "en-US",
+    "continuous": true,
+    "interimResults": true
+  },
+  "textToSpeech": {
+    "language": "en-US",
+    "voicePreference": "Google",
+    "rate": 1.0,
+    "pitch": 1.0,
+    "volume": 1.0
+  },
+  "cookies": {
+    "defaultExpirationDays": 365
+  },
+  "ui": {
+    "defaultSystemInstructions": "",
+    "_comment_systemInstructions": "Leave empty to use backstory-based persona from docs/whinny_backstory.json. The persona will be loaded automatically with strict character boundaries.",
+    "marqueeScrollSpeed": 3,
+    "avatarStatusUpdateInterval": 100
+  },
+  "performance": {
+    "maxChunkHistory": 100,
+    "maxResponseHistory": 100,
+    "preloadVideos": true,
+    "audioBufferSize": 4096
+  },
+  "features": {
+    "speechRecognition": true,
+    "textToSpeech": false,
+    "videoInput": true,
+    "screenShare": true,
+    "metrics": true,
+    "debugConsole": false
+  }
+}

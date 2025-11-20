@@ -1,0 +1,63 @@
+# Docker Compose for Local Cloud Simulation
+# Test containerized backend locally before deploying to Cloud Run
+#
+# Usage:
+#   1. Copy backend/.env.example to backend/.env and fill in values
+#   2. Run: docker-compose up --build
+#   3. Backend available at: http://localhost:8080
+#   4. Health check at: http://localhost:8081/health
+
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: gemini-avatar-backend
+    ports:
+      - "8080:8080"  # Main WebSocket server
+      - "8081:8081"  # Health check endpoint
+    environment:
+      # Backend configuration
+      - BACKEND_HOST=0.0.0.0
+      - BACKEND_PORT=8080
+      - HEALTH_CHECK_PORT=8081
+      - DEBUG=false
+
+      # Security (local development settings)
+      - ALLOWED_ORIGINS=http://localhost:8000,http://localhost:8080
+      - ALLOW_NO_ORIGIN=true
+      - REQUIRE_AUTH=false
+
+      # Gemini API Key (loaded from .env file)
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - MODEL=models/gemini-2.5-flash-native-audio-preview-09-2025
+
+      # Rate limiting
+      - MAX_CONNECTIONS_PER_MINUTE=10
+      - MAX_CONCURRENT_CONNECTIONS=100
+    env_file:
+      - ./backend/.env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - gemini-network
+
+networks:
+  gemini-network:
+    driver: bridge
+
+# Notes:
+# - Frontend should still be served via python -m http.server or similar
+# - This setup simulates Cloud Run environment locally
+# - For full cloud simulation, use K_SERVICE env var to trigger cloud mode:
+#   environment:
+#     - K_SERVICE=gemini-avatar-backend (simulates Cloud Run)
+#     - FIREBASE_PROJECT_ID=your-project-id
+#     - REQUIRE_AUTH=true (to test auth flow)

@@ -1,2 +1,14 @@
+# SDK-COMPLIANT: Official Google Gen AI SDK (Latest stable)
+google-genai==1.51.0
+
+# WebSocket server
 websockets==14.2
-asyncio==3.4.3
+
+# Environment management
+python-dotenv==1.0.0
+
+# Optional dependencies
+aiohttp==3.9.1
+
+# Firebase Authentication (for user token verification in cloud)
+firebase-admin==6.5.0
